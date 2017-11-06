@@ -605,6 +605,9 @@ ggplot(data=x1,
         axis.text.x=element_text(size=8))
 
 #### Give human groom duration
+tf<-subset(tf, type=="TF")#code for subsetting
+
+
 m1=gls(ghgroomd~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
 

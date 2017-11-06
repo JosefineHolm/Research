@@ -11,6 +11,7 @@ library(dplyr)
 library(lattice)
 install.packages("lme4")
 library(lme4)
+install.packages("geepack")
 library(geepack)
 install.packages("lsmeans")
 library(lsmeans)
@@ -30,15 +31,15 @@ xx=care[,sapply(care,is.integer)] #this is to make a subset only of the integers
 xx
 
 #Adding counts and duration of the 3 behavioral type (positive, negative and neutral)
-care$positivect=rowSums(care[,c("foodgrunt", "grunt","lipsmack","pbaboon", "phuman","hgroomct","bgroomct","ghgroomct","gbgroomct","penisd", "playb", "plays","manenrichct","embraceh", "embraceb", "dproxct","dproxout", "movetoobs","playvocal")])
+care$positivect=rowSums(care[,c("foodgrunt", "grunt","lipsmack","pbaboon", "phuman","hgroomct","bgroomct","ghgroomct","gbgroomct","penisd", "playb", "plays","manenrichct","embraceh", "embraceb", "dproxct","dproxout", "movetoobs","playvocal")], na.rm=T)
 care$positivect
-care$positived=rowSums(care[,c("hgroomd","bgroomd","ghgroomd","gbgroomd","manenrichd")])
+care$positived=rowSums(care[,c("hgroomd","bgroomd","ghgroomd","gbgroomd","manenrichd")], na.rm=T)
 care$positived
-care$negativect=rowSums(care[,c("iproxct", "iproxout","threatg", "bark", "headshake", "yawn", "aggb", "pace", "aggdisp", "teeth", "rubgen", "sway", "turn", "scream")])
+care$negativect=rowSums(care[,c("iproxct", "iproxout","threatg", "bark", "headshake", "yawn", "aggb", "pace", "aggdisp", "teeth", "rubgen", "sway", "turn", "scream")], na.rm=T)
 care$negativect
-care$neutralct=rowSums(care[,c("sgroomct", "eatct","drink","foragect", "restct","schratch", "other")]) 
+care$neutralct=rowSums(care[,c("sgroomct", "eatct","drink","foragect", "restct","schratch", "other")], na.rm=T) 
 care$neutralct
-care$neutrald=rowSums(care[,c("sgroomd","eatd","foraged","restd")] )6
+care$neutrald=rowSums(care[,c("sgroomd","eatd","foraged","restd")], na.rm=T )
 care$neutrald
 
 #The numbers are not showing for the positive and negative counts

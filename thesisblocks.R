@@ -21,6 +21,8 @@ install.packages("MuMIn")
 library(MuMIn)
 install.packages("ggplot2")
 library(ggplot2)
+install.packages("nortest")
+library(nortest)
 
 #Putting the 4 condition in as a factor
 care$cond.f=as.factor(care$cond)

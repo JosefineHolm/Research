@@ -1,5 +1,5 @@
 #Hi from Clay
-
+#josefine
 #load data
 care=read.table(file="caredata.csv", header=TRUE, sep=",")
 names(care)

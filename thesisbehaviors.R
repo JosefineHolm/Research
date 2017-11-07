@@ -1,5 +1,6 @@
 #Hi from Clay
 #josefine
+# Second test to see if it works from home computer
 #load data
 care=read.table(file="caredata.csv", header=TRUE, sep=",")
 names(care)
@@ -605,8 +606,15 @@ ggplot(data=x1,
         axis.text.x=element_text(size=8))
 
 #### Give human groom duration
-tf<-subset(tf, type=="TF")#code for subsetting
+patats<-subset(care, id=="patats")#code for subsetting
+hope<-subset(care, id=="hope")
+ayana<-subset(care, id=="ayana")
+females=rbind(patats, hope, ayana)
+females=droplevels(females)
 
+females=subset(care,id!="stevie")#exclude the individuals you dont need
+females=droplevels(females)# deletes the individual from the sets 
+females$id #shows the specific columns and the structure
 
 m1=gls(ghgroomd~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)

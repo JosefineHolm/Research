@@ -326,41 +326,42 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-#### Human groom count (Not done yet)
+#### Human groom count (residual plots dont work yet)
 #Since stevie can not groom a human we have to take him out by making a subset
 females=subset(care,id!="stevie")#exclude the individuals you dont need
 females=droplevels(females)# deletes the individual from the sets 
 females$id #shows the specific columns and the structure
 #Model 1 without individuals with random factors
-m1=gls(hgroomct~cond.f, data=care, na.action=na.omit, method="ML")
+m1=gls(hgroomct~cond.f, data=females, na.action=na.omit, method="ML")
 #CPA-deleted an extra "=".  Also, you are still referring to data=care instead of data=females
 summary(m1)
 
 #model2 - try put individual in as a main factor so cond.f+id
-m2=lme(hgroomct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+m2=lme(hgroomct~cond.f, random=~1|id,data=females, na.action=na.omit, method="ML")
      #CPA-deleted an extra "=".  Also, you are still referring to data=care instead of data=females
      #looks like you are doing the same below too
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and it is significant P=0.0322
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
 E=resid(m2)
 hist(E,xlab="residuals", main="")
+# These two plots do not wanna run 
 plot(females$cond.f, E, xlab="Treatment", ylab="residuals")
-plot(care$id, E, xlab="id", ylab="residuals")
+plot(females$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test significant P=2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
 #There are no significant values for human groom count
 
 #making a table that will show the means per individual that can be graphed not sure it works
-x1 <- group_by(care, cond.f, id) %>%
+x1 <- group_by(females, cond.f, id) %>%
   summarize(m.hgroomct = mean(hgroomct, na.rm = TRUE), # na.rm = TRUE to remove missing values
             s.hgroomct=sd(hgroomct, na.rm = TRUE),  # na.rm = TRUE to remove missing values
             n = sum(!is.na(hgroomct)), # of observations, excluding NAs.
@@ -391,38 +392,40 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
+#Still shows 4 id in the graph
+
 #### Human groom duration (Not done yet)
 #Before we calculate this we have to take stevie out
 females=subset(care,id!="stevie")#exclude the individuals you dont need
 females=droplevels(females)# deletes the individual from the sets 
 females$id #shows the specific columns and the structure
 
-m1=gls(hgroomd~cond.f, data=care, na.action=na.omit, method="ML")
+m1=gls(hgroomd~cond.f, data=females, na.action=na.omit, method="ML")
 summary(m1)
 
 #model2 - try put individual in as a main factor so cond.f+id
-m2=lme(hgroomd~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+m2=lme(hgroomd~cond.f, random=~1|id,data=females, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=0.0322
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
 E=resid(m2)
 hist(E,xlab="residuals", main="")
-plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
-plot(care$id, E, xlab="id", ylab="residuals")
+plot(females$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(females$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test significant P=2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
 #There are no significant values for human groom count
 
 #making a table that will show the means per individual that can be graphed not sure it works
-x1 <- group_by(care, cond.f, id) %>%
+x1 <- group_by(females, cond.f, id) %>%
   summarize(m.hgroomd = mean(hgroomd, na.rm = TRUE), # na.rm = TRUE to remove missing values
             s.hgroomd=sd(hgroomd, na.rm = TRUE),  # na.rm = TRUE to remove missing values
             n = sum(!is.na(hgroomd)), # of observations, excluding NAs.

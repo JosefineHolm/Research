@@ -333,10 +333,13 @@ females=droplevels(females)# deletes the individual from the sets
 females$id #shows the specific columns and the structure
 #Model 1 without individuals with random factors
 m1=gls(hgroomct~cond.f, data=care, na.action=na.omit, method="ML")
+#CPA-deleted an extra "=".  Also, you are still referring to data=care instead of data=females
 summary(m1)
 
 #model2 - try put individual in as a main factor so cond.f+id
-m2=lme(hgroomct~cond.f, random=~1|id=,data=care, na.action=na.omit, method="ML")
+m2=lme(hgroomct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+     #CPA-deleted an extra "=".  Also, you are still referring to data=care instead of data=females
+     #looks like you are doing the same below too
 summary(m2)
 anova(m1,m2)
 #Since the model with the random factor had a lower IAC score we wanna use that 
@@ -345,7 +348,7 @@ op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
 E=resid(m2)
 hist(E,xlab="residuals", main="")
-plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(females$cond.f, E, xlab="Treatment", ylab="residuals")
 plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))

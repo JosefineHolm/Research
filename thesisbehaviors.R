@@ -1,28 +1,30 @@
-#Hi from Clay's home computer
 
-#Hi from Clay
-#josefine
-# Second test to see if it works from home computer
+#####################Preliminary statistics to find results for individual behaviors###############################
+
 #load data
 care=read.table(file="caredata.csv", header=TRUE, sep=",")
 names(care)
 str(care)
 
-#Packages used
+#Installes Packages 
+install.packages("lme4")
+install.packages("geepack")
+install.packages("lsmeans")
+install.packages("dplyr")
+install.packages("MuMIn")
+install.packages("ggplot2")
+install.packages("nortest")
+
+#Library to run 
 library(nlme)
 library(dplyr)
 #packages gotten from last years project
 library(lattice)
-install.packages("lme4")
 library(lme4)
 library(geepack)
-install.packages("lsmeans")
 library(lsmeans)
-install.packages("dplyr")
 library(dplyr)
-install.packages("MuMIn")
 library(MuMIn)
-install.packages("ggplot2")
 library(ggplot2)
 
 #Putting the 4 condition in as a factor
@@ -44,7 +46,7 @@ summary(m1)
 m2=lme(foodgrunt~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#There is not significant difference in the model P = 0.9996 so we will keep model 2 because it makes most sence.  
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -55,7 +57,7 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))# Is significant 2.2*10^-16 
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
@@ -102,7 +104,7 @@ summary(m1)
 m2=lme(grunt~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and model 2 is significant P=1*10^-4
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -113,7 +115,7 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#Ad.test is significant P=2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
@@ -160,7 +162,7 @@ summary(m1)
 m2=lme(lipsmack~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=0.0001
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -171,11 +173,11 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant P=2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
-#There are a significant change between condition 1 and 2. 
+#There are a significant change between condition 1 and 2. P=0.0398
 
 #making a table that will show the means per individual that can be graphed not sure it works
 x1 <- group_by(care, cond.f, id) %>%
@@ -218,7 +220,7 @@ summary(m1)
 m2=lme(pbaboon~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=8*10^-4 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -229,11 +231,11 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant P=2.2*10^-16 
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
-#There are a significant change between condition 1 and 2, 1 and 3 and 1 and 4. 
+#There are a significant change between condition 1 and 2 P=0.0042, 1 and 3 P=0.0022and 1 and 4 P=0.0026. 
 
 #making a table that will show the means per individual that can be graphed not sure it works
 x1 <- group_by(care, cond.f, id) %>%
@@ -266,6 +268,7 @@ ggplot(data=x1,
         axis.title.y=element_text(size=8),
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
+
 #### Present to human 
 m1=gls(phuman~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
@@ -274,7 +277,7 @@ summary(m1)
 m2=lme(phuman~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=0.001
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -285,11 +288,11 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant P=2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
-#There are a significant change between condition 1 and 4 and 2 and 4.
+#There are a significant change between condition 2 and 4 P=0.0458 and almost 1-4.
 
 #making a table that will show the means per individual that can be graphed not sure it works
 x1 <- group_by(care, cond.f, id) %>%
@@ -323,12 +326,17 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-#### Human groom count
+#### Human groom count (Not done yet)
+#Since stevie can not groom a human we have to take him out by making a subset
+females=subset(care,id!="stevie")#exclude the individuals you dont need
+females=droplevels(females)# deletes the individual from the sets 
+females$id #shows the specific columns and the structure
+#Model 1 without individuals with random factors
 m1=gls(hgroomct~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
 
 #model2 - try put individual in as a main factor so cond.f+id
-m2=lme(hgroomct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+m2=lme(hgroomct~cond.f, random=~1|id=,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
 #Since the model with the random factor had a lower IAC score we wanna use that 
@@ -379,7 +387,13 @@ ggplot(data=x1,
         axis.title.y=element_text(size=8),
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
-#### Human groom duration
+
+#### Human groom duration (Not done yet)
+#Before we calculate this we have to take stevie out
+females=subset(care,id!="stevie")#exclude the individuals you dont need
+females=droplevels(females)# deletes the individual from the sets 
+females$id #shows the specific columns and the structure
+
 m1=gls(hgroomd~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
 
@@ -436,7 +450,7 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-######## Baboon groom count
+######## Baboon groom count, a baboon is grooming the individual
 m1=gls(bgroomct~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
 
@@ -444,21 +458,21 @@ summary(m1)
 m2=lme(bgroomct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model without the random factor had a lower IAC score we wanna use that 
+#The models are not significant from each other and M1 does have a lower score, but since it is not significant M2 still makes more sense 
 #Plotting residuals for m1 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
-plot(m1, add.smooth=FALSE, which=1)
-E=resid(m1)
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
 hist(E,xlab="residuals", main="")
 plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
 plot(care$id, E, xlab="id", ylab="residuals")
 
-qqnorm(residuals(m1))
-qqline(residuals(m1))
-ad.test(residuals(m1))#this one says error
-summary(m1)
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant p=2.2*10^-16
+summary(m2)
 
-lsmeans(m1,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
 #There are no significant values for human groom count
 
 #making a table that will show the means per individual that can be graphed not sure it works
@@ -476,7 +490,7 @@ ggplot(data=x1,
                 position=position_dodge(0.9)) +
   scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
   xlab("ID") +
-  ylab("Number of times a baboon groomed the baboon") +
+  ylab("Number of times a baboon groomed the individual") +
   ylim(0,15) +
   labs(fill="id") +
   theme_bw() +
@@ -501,7 +515,7 @@ summary(m1)
 m2=lme(bgroomd~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=0.0013 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -512,11 +526,11 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant P=2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
-#There are no significant values for human groom count
+#There are no significant values for baboon groom duration
 
 #making a table that will show the means per individual that can be graphed not sure it works
 x1 <- group_by(care, cond.f, id) %>%
@@ -533,7 +547,7 @@ ggplot(data=x1,
                 position=position_dodge(0.9)) +
   scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
   xlab("ID") +
-  ylab("Duration of a baboon grooming the baboon") +
+  ylab("Duration of a baboon grooming the individual") +
   ylim(0,15) +
   labs(fill="id") +
   theme_bw() +
@@ -550,7 +564,7 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-#### Give human groom count 
+#### Give human groom count (Not done yet)
 m1=gls(ghgroomct~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
 
@@ -607,7 +621,7 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-#### Give human groom duration
+#### Give human groom duration (Not done yet)
 patats<-subset(care, id=="patats")#code for subsetting
 hope<-subset(care, id=="hope")
 ayana<-subset(care, id=="ayana")
@@ -682,7 +696,7 @@ summary(m1)
 m2=lme(gbgroomct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=1*10^-4 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -693,11 +707,11 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
-#There are no significant values for human groom count
+#There are no significant values for give baboon groom count
 
 #making a table that will show the means per individual that can be graphed not sure it works
 x1 <- group_by(care, cond.f, id) %>%
@@ -739,7 +753,7 @@ summary(m1)
 m2=lme(gbgroomd~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=0.0001
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -750,7 +764,7 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
@@ -788,7 +802,7 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-###### Penisdisplay
+###### Penisdisplay (Not done yet)
 m1=gls(penisd~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
 
@@ -853,7 +867,7 @@ summary(m1)
 m2=lme(playb~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model the random factor had a lower IAC score we wanna use that 
+#Since the model the random factor had a lower IAC score we wanna use that it is not significant though P=1 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -864,7 +878,7 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant 2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
@@ -877,7 +891,7 @@ x1 <- group_by(care, cond.f, id) %>%
             n = sum(!is.na(playb)), # of observations, excluding NAs.
             se.playb=s.playb/sqrt(n))
 x1
-#Trying to plot the amount of neutral counts there are for each individual
+#Trying to plot per individual
 ggplot(data=x1,
        aes(x=cond.f, y=m.playb, fill=id, label=m.playb)) +
   geom_bar(stat="identity", position=position_dodge(), color = "black") +
@@ -910,7 +924,7 @@ summary(m1)
 m2=lme(plays~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that and its significant P=0.0001
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -921,7 +935,7 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant 2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
@@ -967,19 +981,19 @@ summary(m1)
 m2=lme(manenrichct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model without the random factor had a lower IAC score we wanna use that 
+#The models are not significantly different so I choose the one with random factor cause it makes most sense
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
-plot(m1, add.smooth=FALSE, which=1)
-E=resid(m1)
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
 hist(E,xlab="residuals", main="")
 plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
 plot(care$id, E, xlab="id", ylab="residuals")
 
-qqnorm(residuals(m1))
-qqline(residuals(m1))
-ad.test(residuals(m1))#this one says error
-summary(m1)
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))# Ad.test is significant 2.2*10^-16
+summary(m2)
 
 lsmeans(m1,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
 #There are no significant difference for manipulating enrichment count
@@ -991,7 +1005,7 @@ x1 <- group_by(care, cond.f, id) %>%
             n = sum(!is.na(manenrichct)), # of observations, excluding NAs.
             se.manenrichct=s.manenrichct/sqrt(n))
 x1
-#Trying to plot the amount of neutral counts there are for each individual
+#Trying to plot for each individual
 ggplot(data=x1,
        aes(x=cond.f, y=m.manenrichct, fill=id, label=m.manenrichct)) +
   geom_bar(stat="identity", position=position_dodge(), color = "black") +
@@ -1024,7 +1038,7 @@ summary(m1)
 m2=lme(manenrichd~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that its not significant: 0.0914 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -1035,7 +1049,7 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test significant 2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
@@ -1048,7 +1062,7 @@ x1 <- group_by(care, cond.f, id) %>%
             n = sum(!is.na(manenrichd)), # of observations, excluding NAs.
             se.manenrichd=s.manenrichd/sqrt(n))
 x1
-#Trying to plot the amount of neutral counts there are for each individual
+#Trying to plot for each individual
 ggplot(data=x1,
        aes(x=cond.f, y=m.manenrichd, fill=id, label=m.manenrichd)) +
   geom_bar(stat="identity", position=position_dodge(), color = "black") +
@@ -1073,7 +1087,7 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-#### Embrace human 
+#### Embrace human (not done yet)
 m1=gls(embraceh~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)
 
@@ -1138,7 +1152,7 @@ summary(m1)
 m2=lme(embraceb~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#Since the model with the random factor had a lower IAC score we wanna use that but its not significant p=0.1007 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -1149,11 +1163,11 @@ plot(care$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m2))
 qqline(residuals(m2))
-ad.test(residuals(m2))#this one says error
+ad.test(residuals(m2))#ad.test is significant 2.2*10^-16
 summary(m2)
 
 lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
-#There are a significant difference between 1-3 and almost 2-3
+#There are a significant difference between 1-3 P = 0.0024 and almost 2-3 P=0.0527.
 
 #making a table that will show the means per individual that can be graphed not sure it works
 x1 <- group_by(care, cond.f, id) %>%

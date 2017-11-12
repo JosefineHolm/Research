@@ -811,8 +811,10 @@ ggplot(data=x1,
 #Before we calculate this we have to take the girls out
 #The subsetting does not seem to work
 male=subset(care,id!="hope","ayana","patats")#exclude the individuals you dont need
+#Trying a different way 
+male=subset(care,id!="hope, ayana, patats")#exclude the individuals you dont need
 male=droplevels(male)# deletes the individual from the sets 
-male$id #shows the specific columns and the structure
+male$id #shows the specific columns and the structure which shows all the individuals
 
 m1=gls(penisd~cond.f, data=care, na.action=na.omit, method="ML")
 summary(m1)

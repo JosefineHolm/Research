@@ -570,7 +570,7 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-#### Give human groom count (Not done yet)
+#### Give human groom count (Residual plots does not work)
 #Before we calculate this we have to take stevie out
 females=subset(care,id!="stevie")#exclude the individuals you dont need
 females=droplevels(females)# deletes the individual from the sets 
@@ -600,7 +600,7 @@ lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors h
 #There are no significant values for human groom count
 
 #making a table that will show the means per individual that can be graphed not sure it works
-x1 <- group_by(care, cond.f, id) %>%
+x1 <- group_by(females, cond.f, id) %>%
   summarize(m.ghgroomct = mean(ghgroomct, na.rm = TRUE), # na.rm = TRUE to remove missing values
             s.ghgroomct=sd(ghgroomct, na.rm = TRUE),  # na.rm = TRUE to remove missing values
             n = sum(!is.na(ghgroomct)), # of observations, excluding NAs.
@@ -632,11 +632,7 @@ ggplot(data=x1,
         axis.text.x=element_text(size=8))
 
 #### Give human groom duration (Not done yet)
-patats<-subset(care, id=="patats")#code for subsetting
-hope<-subset(care, id=="hope")
-ayana<-subset(care, id=="ayana")
-females=rbind(patats, hope, ayana)
-females=droplevels(females)
+
 
 females=subset(care,id!="stevie")#exclude the individuals you dont need
 females=droplevels(females)# deletes the individual from the sets 
@@ -1268,3 +1264,10 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
+########################################################################################################
+#Extra notes 
+patats<-subset(care, id=="patats")#code for subsetting
+hope<-subset(care, id=="hope")
+ayana<-subset(care, id=="ayana")
+females=rbind(patats, hope, ayana)
+females=droplevels(females)

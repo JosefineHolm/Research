@@ -352,6 +352,9 @@ hist(E,xlab="residuals", main="")
 plot(females$cond.f, E, xlab="Treatment", ylab="residuals")
 plot(females$id, E, xlab="id", ylab="residuals")
 
+plot(filter(females, !is.na(hgroomct)) %>% dplyr::select(id), #this code will filter NAs out.  it's best to use this nested in the plot command all the time
+     E, xlab="Treatment", ylab="residuals")
+
 qqnorm(residuals(m2))
 qqline(residuals(m2))
 ad.test(residuals(m2))#ad.test significant P=2.2*10^-16

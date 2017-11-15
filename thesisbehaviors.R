@@ -26,6 +26,7 @@ library(lsmeans)
 library(dplyr)
 library(MuMIn)
 library(ggplot2)
+library(nortest)
 
 #Putting the 4 condition in as a factor
 care$cond.f=as.factor(care$cond)
@@ -807,41 +808,38 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
-###### Penisdisplay (Not done yet) Subsetting does not work
+###### Penisdisplay 
 #Before we calculate this we have to take the girls out
-#The subsetting does not seem to work
-male=subset(care,id!="hope","ayana","patats")#exclude the individuals you dont need
-#Trying a different way 
-male=subset(care,id!="hope, ayana, patats")#exclude the individuals you dont need
+male=subset(care,penisd>=0)
 male=droplevels(male)# deletes the individual from the sets 
 male$id #shows the specific columns and the structure which shows all the individuals
 
-m1=gls(penisd~cond.f, data=care, na.action=na.omit, method="ML")
+m1=gls(penisd~cond.f, data=male, na.action=na.omit, method="ML")
 summary(m1)
 
-#model2 - try put individual in as a main factor so cond.f+id
+#model2 - since it is only one individual we will not use model 2
 m2=lme(penisd~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model without the random factor had a lower IAC score we wanna use that 
+
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m1, add.smooth=FALSE, which=1)
 E=resid(m1)
 hist(E,xlab="residuals", main="")
-plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
-plot(care$id, E, xlab="id", ylab="residuals")
+plot(male$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(male$id, E, xlab="id", ylab="residuals")
 
 qqnorm(residuals(m1))
 qqline(residuals(m1))
-ad.test(residuals(m1))#this one says error
+ad.test(residuals(m1))#ad.test significant p=3.111*10^-15 
 summary(m1)
 
 lsmeans(m1,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
 #There are a significant difference between condition 1-3 for penisdisplay
 
 #making a table that will show the means per individual that can be graphed not sure it works
-x1 <- group_by(care, cond.f, id) %>%
+x1 <- group_by(male, cond.f, id) %>%
   summarize(m.penisd = mean(penisd, na.rm = TRUE), # na.rm = TRUE to remove missing values
             s.penisd=sd(penisd, na.rm = TRUE),  # na.rm = TRUE to remove missing values
             n = sum(!is.na(penisd)), # of observations, excluding NAs.
@@ -1101,14 +1099,19 @@ ggplot(data=x1,
         axis.text.x=element_text(size=8))
 
 #### Embrace human (not done yet)
-m1=gls(embraceh~cond.f, data=care, na.action=na.omit, method="ML")
+#First we have to exclude Stevie
+females=subset(care,id!="stevie")#exclude the individuals you dont need
+females=droplevels(females)# deletes the individual from the sets 
+females$id #shows the specific columns and the structure
+
+m1=gls(embraceh~cond.f, data=females, na.action=na.omit, method="ML")
 summary(m1)
 
 #model2 - try put individual in as a main factor so cond.f+id
-m2=lme(embraceh~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+m2=lme(embraceh~cond.f, random=~1|id,data=females, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model with the random factor had a lower IAC score we wanna use that 
+#The model is significant P = 0.0247 But M1 have a better AIC score 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
 plot(m2, add.smooth=FALSE, which=1)
@@ -1222,22 +1225,22 @@ summary(m1)
 m2=lme(dproxct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
 summary(m2)
 anova(m1,m2)
-#Since the model without the random factor had a lower IAC score we wanna use that 
+#The models are not significant from each other P = 0.4771 so we choose M2. 
 #Plotting residuals for m2 to check if we can use this model
 op=par(mfrow=c(2,2), mar=c(5,4,1,2))
-plot(m1, add.smooth=FALSE, which=1)
-E=resid(m1)
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
 hist(E,xlab="residuals", main="")
 plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
 plot(care$id, E, xlab="id", ylab="residuals")
 
-qqnorm(residuals(m1))
-qqline(residuals(m1))
-ad.test(residuals(m1))#this one says error
-summary(m1)
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
 
-lsmeans(m1,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
-#There are a significant difference between 1-4, 2-4 and 3 and 4. 
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are a significant difference between 1-4 P=0.0002, 2-4 P=0.0001 and 3 and 4 P=0.0001. 
 
 #making a table that will show the means per individual that can be graphed not sure it works
 x1 <- group_by(care, cond.f, id) %>%
@@ -1246,7 +1249,7 @@ x1 <- group_by(care, cond.f, id) %>%
             n = sum(!is.na(dproxct)), # of observations, excluding NAs.
             se.dproxct=s.dproxct/sqrt(n))
 x1
-#Trying to plot the amount of neutral counts there are for each individual
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
 ggplot(data=x1,
        aes(x=cond.f, y=m.dproxct, fill=id, label=m.dproxct)) +
   geom_bar(stat="identity", position=position_dodge(), color = "black") +
@@ -1271,6 +1274,1042 @@ ggplot(data=x1,
         axis.title.x=element_text(size=8),
         axis.text.x=element_text(size=8))
 
+###Decrease proximity outside
+m1=gls(dproxout~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(dproxout~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are significant from each other P = 0.0001 and we choose model 2 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant differences
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.dproxout = mean(dproxout, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.dproxout=sd(dproxout, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(dproxout)), # of observations, excluding NAs.
+            se.dproxout=s.dproxout/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.dproxout, fill=id, label=m.dproxout)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.dproxout, ymax=m.dproxout+se.dproxout), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Decrease proximity outside") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+####Move towards observer
+m1=gls(movetoobs~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(movetoobs~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are significant from each other P = 0.0001 and we choose model 2 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant differences
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.movetoobs = mean(movetoobs, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.movetoobs=sd(movetoobs, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(movetoobs)), # of observations, excluding NAs.
+            se.movetoobs=s.movetoobs/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.movetoobs, fill=id, label=m.movetoobs)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.movetoobs, ymax=m.movetoobs+se.movetoobs), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Move towards observer") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+####Play vocalisation
+m1=gls(playvocal~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(playvocal~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are not significant from each other P = 0.279 so we chose m2. 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant differences
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.playvocal = mean(playvocal, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.playvocal=sd(playvocal, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(playvocal)), # of observations, excluding NAs.
+            se.playvocal=s.playvocal/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.playvocal, fill=id, label=m.playvocal)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.playvocal, ymax=m.playvocal+se.playvocal), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Play vocalisations") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+##########################################Negative behaviors########################################
+#Increase proximity caretaker
+m1=gls(iproxct~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(iproxct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are not significant from each other P = 0.9997 so we chose m2. 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant differences
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.iproxct = mean(iproxct, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.iproxct=sd(iproxct, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(iproxct)), # of observations, excluding NAs.
+            se.iproxct=s.iproxct/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.iproxct, fill=id, label=m.iproxct)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.iproxct, ymax=m.iproxct+se.iproxct), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Increase proximity caretaker") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Increase proximity outside
+m1=gls(iproxout~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(iproxout~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are not significant from each other P = 0.9997 so we chose m2. 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant differences
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.iproxout = mean(iproxout, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.iproxout=sd(iproxout, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(iproxout)), # of observations, excluding NAs.
+            se.iproxout=s.iproxout/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.iproxout, fill=id, label=m.iproxout)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.iproxout, ymax=m.iproxout+se.iproxout), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Increase proximity outside") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Threatgrunt
+m1=gls(threatg~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(threatg~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are not significant from each other P = 0.3173 so we chose m2. 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant differences
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.threatg = mean(threatg, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.threatg=sd(threatg, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(threatg)), # of observations, excluding NAs.
+            se.threatg=s.threatg/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.threatg, fill=id, label=m.threatg)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.threatg, ymax=m.threatg+se.threatg), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Threat grunts") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+##Bark
+m1=gls(bark~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(bark~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are not significant from each other P = 0.9997 so we chose m2. 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are a significant difference between condition 1-2 P=0.0082 and 1-3 P=0.0392 and 1-4 P=0.0184.
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.bark = mean(bark, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.bark=sd(bark, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(bark)), # of observations, excluding NAs.
+            se.bark=s.bark/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.bark, fill=id, label=m.bark)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.bark, ymax=m.bark+se.bark), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Bark") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+# Headshake 
+m1=gls(headshake~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(headshake~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#Model 2 is significant P = 0.0031 so we use that one  
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are a significant difference between condition 1-2 P=0.0082 and 1-3 P=0.0392 and 1-4 P=0.0184.
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.headshake = mean(headshake, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.headshake=sd(headshake, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(headshake)), # of observations, excluding NAs.
+            se.headshake=s.headshake/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.headshake, fill=id, label=m.headshake)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.headshake, ymax=m.headshake+se.headshake), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("headshake") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#yawn
+m1=gls(yawn~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(yawn~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#Model 2 is significant P = 0.0001 so we use that one  
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are a significant difference between condition 1-2 P=0.0082 and 1-3 P=0.0392 and 1-4 P=0.0184.
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.yawn = mean(yawn, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.yawn=sd(yawn, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(yawn)), # of observations, excluding NAs.
+            se.yawn=s.yawn/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.yawn, fill=id, label=m.yawn)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.yawn, ymax=m.yawn+se.yawn), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("yawn") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Agressive baboon 
+m1=gls(aggb~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(aggb~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are not significant from each other P= 0.5757 so we choose M2. 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are a significant difference between condition 1-2 P=0.0082 and 1-3 P=0.0392 and 1-4 P=0.0184.
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.aggb = mean(aggb, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.aggb=sd(aggb, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(aggb)), # of observations, excluding NAs.
+            se.aggb=s.aggb/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.aggb, fill=id, label=m.aggb)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.aggb, ymax=m.aggb+se.aggb), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("aggressive baboon") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Pacing 
+m1=gls(pace~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(pace~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#The models are not significant from each other P= 0.0692 so we choose M2. 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There is a significant difference between condition 1-3 P = 0.0357
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.pace = mean(pace, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.pace=sd(pace, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(pace)), # of observations, excluding NAs.
+            se.pace=s.pace/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.pace, fill=id, label=m.pace)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.pace, ymax=m.pace+se.pace), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Pacing") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Agressive display 
+m1=gls(aggdisp~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(aggdisp~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#Model 2 is significant P = 0.0222 so we use that 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There is no significant difference
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.aggdisp = mean(aggdisp, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.aggdisp=sd(aggdisp, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(aggdisp)), # of observations, excluding NAs.
+            se.aggdisp=s.aggdisp/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.aggdisp, fill=id, label=m.aggdisp)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.aggdisp, ymax=m.aggdisp+se.aggdisp), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Aggressive display") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#showing teeth
+m1=gls(teeth~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - try put individual in as a main factor so cond.f+id
+m2=lme(teeth~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+#Model 2 is significant P = 0.0147 so we use that 
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is significant P = 2.2*10^-16 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There is no significant difference
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.teeth = mean(teeth, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.teeth=sd(teeth, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(teeth)), # of observations, excluding NAs.
+            se.teeth=s.teeth/sqrt(n))
+x1
+#Trying to plot the amount of decrease prox to caretaker behavior are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.teeth, fill=id, label=m.teeth)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.teeth, ymax=m.teeth+se.teeth), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Showing teeth") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Rub genitals
+#Before we calculate this we have to take the girls out
+male=subset(care,rubgen>=0)
+male=droplevels(male)# deletes the individual from the sets 
+male$id #shows the specific columns and the structure which shows all the individuals
+
+m1=gls(rubgen~cond.f, data=male, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - since it is only one individual we will not use model 2
+m2=lme(rubgen~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m1, add.smooth=FALSE, which=1)
+E=resid(m1)
+hist(E,xlab="residuals", main="")
+plot(male$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(male$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m1))
+qqline(residuals(m1))
+ad.test(residuals(m1))#ad.test significant p=3.111*10^-15 
+summary(m1)
+
+lsmeans(m1,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant result
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(male, cond.f, id) %>%
+  summarize(m.rubgen = mean(rubgen, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.rubgen=sd(rubgen, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(rubgen)), # of observations, excluding NAs.
+            se.rubgen=s.rubgen/sqrt(n))
+x1
+#Trying to plot the amount of neutral counts there are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.rubgen, fill=id, label=m.rubgen)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.rubgen, ymax=m.rubgen+se.rubgen), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Rub genitals") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Turn 360 (Not done the subsetting does not work)
+#Before we calculate this we have to take the girls out
+male=subset(care,turn>=0)
+male=droplevels(male)# deletes the individual from the sets 
+male$id #shows the specific columns and the structure which shows all the individuals
+
+m1=gls(turn~cond.f, data=male, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - since it is only one individual we will not use model 2
+m2=lme(turn~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m1, add.smooth=FALSE, which=1)
+E=resid(m1)
+hist(E,xlab="residuals", main="")
+plot(male$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(male$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m1))
+qqline(residuals(m1))
+ad.test(residuals(m1))#ad.test significant p=3.111*10^-15 
+summary(m1)
+
+lsmeans(m1,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant result
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(male, cond.f, id) %>%
+  summarize(m.turn = mean(turn, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.turn=sd(turn, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(turn)), # of observations, excluding NAs.
+            se.turn=s.turn/sqrt(n))
+x1
+#Trying to plot the amount of neutral counts there are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.turn, fill=id, label=m.turn)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.turn, ymax=m.turn+se.turn), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Turn 360") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#scream 
+m1=gls(scream~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - since it is only one individual we will not use model 2
+m2=lme(scream~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)
+
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test is not significant P = 0.06758
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant result
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(male, cond.f, id) %>%
+  summarize(m.scream = mean(scream, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.scream=sd(scream, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(scream)), # of observations, excluding NAs.
+            se.scream=s.scream/sqrt(n))
+x1
+#Trying to plot the amount of neutral counts there are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.scream, fill=id, label=m.scream)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.scream, ymax=m.scream+se.scream), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("scream") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Self groom count 
+m1=gls(sgroomct~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - takin id in as a random factor
+m2=lme(sgroomct~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)#They are not significant from each other p=0.1165 so we chose M2
+
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test significant p=3.111*10^-15 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant result
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.sgroomct = mean(sgroomct, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.sgroomct=sd(sgroomct, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(sgroomct)), # of observations, excluding NAs.
+            se.sgroomct=s.sgroomct/sqrt(n))
+x1
+#Trying to plot the amount of neutral counts there are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.sgroomct, fill=id, label=m.sgroomct)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.sgroomct, ymax=m.sgroomct+se.sgroomct), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("self groom count") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+
+#Selfgroom durarion
+m1=gls(sgroomd~cond.f, data=care, na.action=na.omit, method="ML")
+summary(m1)
+
+#model2 - since it is only one individual we will not use model 2
+m2=lme(sgroomd~cond.f, random=~1|id,data=care, na.action=na.omit, method="ML")
+summary(m2)
+anova(m1,m2)#They are not significant from each other p=0.1165 so we chose M2
+
+#Plotting residuals for m2 to check if we can use this model
+op=par(mfrow=c(2,2), mar=c(5,4,1,2))
+plot(m2, add.smooth=FALSE, which=1)
+E=resid(m2)
+hist(E,xlab="residuals", main="")
+plot(care$cond.f, E, xlab="Treatment", ylab="residuals")
+plot(care$id, E, xlab="id", ylab="residuals")
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+ad.test(residuals(m2))#ad.test significant p=3.111*10^-15 
+summary(m2)
+
+lsmeans(m2,pairwise~cond.f)#This one schould be able to show how the behaviors have changes
+#There are no significant result
+
+#making a table that will show the means per individual that can be graphed not sure it works
+x1 <- group_by(care, cond.f, id) %>%
+  summarize(m.sgroomd = mean(sgroomd, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            s.sgroomd=sd(sgroomd, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(sgroomd)), # of observations, excluding NAs.
+            se.sgroomd=s.sgroomd/sqrt(n))
+x1
+#Trying to plot the amount of neutral counts there are for each individual
+ggplot(data=x1,
+       aes(x=cond.f, y=m.sgroomd, fill=id, label=m.sgroomd)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.sgroomd, ymax=m.sgroomd+se.sgroomd), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("self groom duration") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
 ########################################################################################################
 #Extra notes 
 patats<-subset(care, id=="patats")#code for subsetting

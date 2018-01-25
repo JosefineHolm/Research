@@ -65,3 +65,14 @@ library(leaps)
 m2=regsubsets(negativect~cond.f+dayofcond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep,data=care, na.action=na.omit,nbest=4, really.big = T)
 plot(m2,scale="adjr2")
 plot(m2,scale="bic")
+
+###########################################################################################
+#try to use a step wise selection procedure
+#https://stat.ethz.ch/R-manual/R-devel/library/stats/html/step.html
+
+step(m2)
+
+summary(glm1 <- lm(cond.f ~ ., data = care))
+sglm1 <- step(glm1)
+summary(sglm1)
+sglm1$anova

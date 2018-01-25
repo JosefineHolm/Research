@@ -48,6 +48,7 @@ care$negativect
 #Playing with models. 
 m2=lme(negativect~cond.f+dayofcond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep, random=~1|id,data=care, na.action=na.omit)
 summary(m2)
+m2=lme(negativect~tday.f+numct.f, random=~1|id,data=care, na.action=na.omit)
 #so far following independent factor does not wanna work:
 #tday.f,numct.f,sexct,ctclean,ctint,timetoenrich,timetoclean
 #Dropping factors- Not really sure were to go from here. 
@@ -55,4 +56,12 @@ drop1(m2, test="Chi")
 m2=lme(negativect~cond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep, random=~1|id,data=care, na.action=na.omit)
 summary(m2)
 
+
+
+
 ###########################################################################################
+install.packages("leaps")
+library(leaps)
+m2=regsubsets(negativect~cond.f+dayofcond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep,data=care, na.action=na.omit,nbest=4, really.big = T)
+plot(m2,scale="adjr2")
+plot(m2,scale="bic")

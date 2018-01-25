@@ -132,3 +132,47 @@ plot(x, E2)
 acf(E2, na.action=na.pass,
     main="Auto-correlation plot for residuals")
 #There are no autocorrelation. 
+
+#####################################################
+#Check Autocorrelation Models
+#####################################################
+
+#new base model from above
+M1.8<-lme(net.doc.flux ~ budworm*f.sample.event,  
+          random = ~1|site, na.action=na.omit, data=tf.out, weights=(vf8))
+
+M3<-lme(net.doc.flux ~ budworm*f.sample.event,
+        random = ~1|site, na.action=na.omit, data=tf.out, weights=(vf8),
+        correlation=corCompSymm(form=~f.sample.event))
+
+M4<-lme(net.doc.flux ~ budworm+f.sample.event,
+        random = ~1|site, na.action=na.omit, data=tf.out, weights=vf2,
+        correlation=corAR1(form=~f.sample.event))
+#doesn't work
+
+cs1<-corARMA(c(0.2), p=1, q=0)
+
+M5<-lme(net.doc.flux ~ budworm*f.sample.event,
+        random = ~1|site, na.action=na.omit, data=tf.out, weights=(vf8),
+        correlation=cs1)
+
+anova(M1.8,M3,M5)
+#autocorrelation models help, but not much
+
+#look at model residuals
+#E5<-residuals(M5)
+
+#plot(filter(tf.out, !is.na(net.doc.flux)) %>% dplyr::select(site),
+#     E5, xlab="Site", ylab="Residuals")
+#plot(filter(tf.out, !is.na(net.doc.flux)) %>% dplyr::select(budworm),
+#     E5, xlab="Budworm", ylab="Residuals")
+
+#qqnorm(residuals(M5))
+#qqline(residuals(M5))
+#ad.test(residuals(M5))
+
+#plot(M5) 
+
+#x<-tf.out$net.doc.flux[!is.na(tf.out$net.doc.flux)]#removes na values from column
+#E5<-residuals(M5,type="normalized")
+#plot(x, E5)

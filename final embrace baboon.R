@@ -109,7 +109,7 @@ qqline(residuals(M2.2))
 ad.test(residuals(M2.2))
 summary(M2.2)
 #Now we check for significant results. 
-odel.matrix.gls <- function(M2.2, ...){
+model.matrix.gls <- function(M2.2, ...){
   
   model.matrix(terms(M2.2), data = getData(M2.2), ...) 
   
@@ -145,3 +145,67 @@ plot(x, E2)
 acf(E2, na.action=na.pass,
     main="Auto-correlation plot for residuals")
 #There are no autocorrelation. 
+ggplot(data=x1,
+       aes(x=cond.f, y=m.embraceb, fill=id, label=m.embraceb)) +
+  geom_bar(stat="identity", position=position_dodge(), color = "black") +
+  geom_errorbar(aes(ymin=m.embraceb, ymax=m.embraceb+se.embraceb), width=0.2,
+                position=position_dodge(0.9)) +
+  scale_fill_manual(values=c("black","white", "light grey", "dark grey")) +
+  xlab("ID") +
+  ylab("Embraces") +
+  ylim(0,15) +
+  labs(fill="id") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        legend.title=element_text(size=6),
+        legend.key=element_blank(),
+        legend.position=c(0.5,0.95),
+        legend.text=element_text(size=8),
+        legend.background=element_blank(),
+        legend.direction="horizontal",
+        legend.key.size=unit(0.3, "cm"),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+#Now looking at independent variables
+#Putting the 4 condition in as a factor
+care$cond.f=as.factor(care$cond)
+#Putting the 3 focals in as a factor
+care$focal.f=as.factor(care$focal)
+#Putting totalday in as condition
+care$tday.f=as.factor(care$tday)
+#Putting the day of condition in as a factor
+care$dayofcond.f=as.factor(care$dayofcond)
+#Putting the number of caretakers in as a factor
+care$numct.f=as.factor(care$numct)
+str(care)
+##
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+sep+pxtraint+(1|id),data=care, na.action=na.omit)
+summary(M2.2)
+drop1(M2.2, test="Chi")#drop ctpos.
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctenrich+enrich+timetofeed+clean+xtraint+sep+pxtraint+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop extrainteraction
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctenrich+enrich+timetofeed+clean+sep+pxtraint+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop timetofeed
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctenrich+enrich+clean+sep+pxtraint+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop clean
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctenrich+enrich+sep+pxtraint+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop pxtraint
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctenrich+enrich+sep+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop weather
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+ctenrich+enrich+sep+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop enrich
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+ctenrich+sep+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop ctenrich
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+sep+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop focal.f
+M2.2<-lmer(l.embraceb~cond.f+dayofcond.f+observer+sep+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop observer
+M2.2<-lmer(l.embraceb~cond.f+dayofcond.f+sep+(1|id),data=care, na.action=na.omit)
+drop1(M2.2, test="Chi")#drop dayofcond.f
+M2.2<-lmer(l.embraceb~cond.f+sep+(1|id),data=care, na.action=na.omit)
+# So condition and if the individuals were seperated had an affect on the results. 
+#Checking the rest of the independent variables (NOT SURE WHAT TO DO HERE)
+M2.2<-lm(l.embraceb~tday.f,data=care, na.action=na.omit)
+summary(M2.2)

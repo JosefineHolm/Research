@@ -113,6 +113,8 @@ qqline(residuals(M2.1))
 ad.test(residuals(M2.1))
 summary(M2.1)
 #Plotting my data 
+#CPA added-->I think the problem with the code below is that there's no object called x1.
+#x1 should be a summary table of what you're trying to plot
 ggplot(data=x1,
        aes(x=cond.f, y=m.positivect, fill=id, label=m.positivect)) +
   geom_bar(stat="identity", position=position_dodge(), color = "black") +

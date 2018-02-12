@@ -5,6 +5,7 @@ names(care)
 str(care)
 
 #Installed Packages
+install.packages("nlme")
 install.packages("lme4")
 install.packages("geepack")
 install.packages("lsmeans")
@@ -12,6 +13,7 @@ install.packages("dplyr")
 install.packages("MuMIn")
 install.packages("ggplot2")
 install.packages("nortest")
+install.packages("multcomp")
 
 #Library to run 
 library(nlme)
@@ -180,7 +182,9 @@ care$dayofcond.f=as.factor(care$dayofcond)
 #Putting the number of caretakers in as a factor
 care$numct.f=as.factor(care$numct)
 str(care)
-##
+##DOES NOT WANT TO RUN THE MODEL WITH THE WEIGHTS
+M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+sep+pxtraint+(1|id),data=care, na.action=na.omit,weights=vf2)
+#So continuing without the "weight" factor here
 M2.2<-lmer(l.embraceb~cond.f+focal.f+dayofcond.f+observer+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+sep+pxtraint+(1|id),data=care, na.action=na.omit)
 summary(M2.2)
 drop1(M2.2, test="Chi")#drop ctpos.

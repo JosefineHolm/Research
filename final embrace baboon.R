@@ -213,3 +213,95 @@ M2.2<-lmer(l.embraceb~cond.f+sep+(1|id),data=care, na.action=na.omit)
 #Checking the rest of the independent variables (NOT SURE WHAT TO DO HERE)
 M2.2<-lm(l.embraceb~tday.f,data=care, na.action=na.omit)
 summary(M2.2)
+
+
+
+
+
+############################################################
+#Non-parametric tests just in case you need them
+kruskal.test(embraceb~cond.f+sep, data=care)
+install.packages("sm")
+library(sm)
+with(care, ancova.np<-sm.ancova(embraceb, sep, cond.f, model="equal"))#this is the non-parametric ancova
+
+############################################################
+#Non-parametric tests just in case you need them
+kruskal.test(embraceb~cond.f+sep, data=care)
+install.packages("sm")
+library(sm)
+with(care, ancova.np<-sm.ancova(embraceb, sep, cond.f, model="equal"))#this is the non-parametric ancova
+
+
+
+
+###########################################################
+#making a table for Behavior Response Ratio
+
+#calculate mean
+#create a summary table for each behavior one at a time by individual, condition, and total day
+#this example for "grunt"...change this variable for each
+x <- group_by(care, id, cond, tday) %>%  # Grouping function causes subsequent functions to aggregate by season and reach
+  summarize(grunt.m = mean(grunt, na.rm = TRUE)) # na.rm = TRUE to remove missing values
+            
+#calculate average of baseline condition per individual from table x
+avg <- group_by(x, id, cond) %>%
+  summarize(grunt.m = mean(grunt.m, na.rm = TRUE))
+
+#subset avg table to remove all conditions except for 1
+baseline<-subset(avg, cond==1)
+
+#subset table x to remove condition 1
+responses<-subset(x, cond!=1)
+
+#subset responses to get each individual
+ayana.resp<-subset(responses, id=="ayana")
+stevie.resp<-subset(responses, id=="stevie")
+hope.resp<-subset(responses, id=="hope ")#hope has an accidental space saved after her name so this needs to be
+                                          #typed to include the space, or remove the spaces and update this
+patats.resp<-subset(responses, id=="patats")
+
+#for each baboon, divide the daily average response by the average response in the "baseline" table and
+#call it grunt.brr (behavior response ratio)
+base.ayana<-subset(baseline, id=="ayana")
+ayana.resp$grunt.brr=ayana.resp$grunt.m/base.ayana$grunt.m
+
+base.stevie<-subset(baseline, id=="stevie")
+stevie.resp$grunt.brr=stevie.resp$grunt.m/base.stevie$grunt.m
+
+base.hope<-subset(baseline, id=="hope ")
+hope.resp$grunt.brr=hope.resp$grunt.m/base.hope$grunt.m
+
+base.patats<-subset(baseline, id=="patats")
+patats.resp$grunt.brr=patats.resp$grunt.m/base.patats$grunt.m
+
+#create a summary table for plotting (for each individual)
+#this example for "ayana"...change this variable for each
+x.p <- group_by(ayana.resp, cond) %>%  # Grouping function causes subsequent functions to aggregate by season and reach
+  summarize(grunt.brr.m = mean(grunt.brr, na.rm = TRUE), # na.rm = TRUE to remove missing values
+            grunt.brr.sd=sd(grunt.brr, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(grunt.brr)), # of observations, excluding NAs. 
+            grunt.brr.se=grunt.brr.sd/sqrt(n))
+
+#create plot
+library(ggplot2)
+ggplot(data=x.p, aes(x=cond, y=grunt.brr.m)) + 
+  geom_bar(stat="identity", position=position_dodge(), color = "black") + 
+  geom_errorbar(aes(ymin=grunt.brr.m, ymax=grunt.brr.m + grunt.brr.se), width=0.2, 
+                position=position_dodge(0.9)) + 
+  scale_fill_manual(values=c("black")) +
+  xlab("Condition") +
+  ylab("Behavior Response Ratio") +
+  ylim(0,2) +
+  theme_bw() +
+  geom_hline(yintercept = 1) + 
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        axis.title.y=element_text(size=8),
+        axis.title.x=element_text(size=8),
+        axis.text.x=element_text(size=8))
+#josefine....this is probably way clunkier than it needs to be, but this will show the average behavior
+#response per individual.  We can group it so all the individuals are shown on a given graph by doing
+#summaries for all the individuals and then binding them together with rbind
+#a value where the error bars are below 1 shows a significant decrease relative to condition 1, 
+#and a value where the error bars are greater than one shows a significant increase

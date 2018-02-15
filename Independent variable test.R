@@ -76,3 +76,8 @@ summary(glm1 <- lm(cond.f ~ ., data = care))
 sglm1 <- step(glm1)
 summary(sglm1)
 sglm1$anova
+
+###########################################################################################
+#try to use lmer model for random effect
+library(lme4)
+m2=lmer(negativect~cond.f+dayofcond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep+(~1|id),data=care, na.action=na.omit,nbest=4, really.big = T)

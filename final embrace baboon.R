@@ -246,10 +246,18 @@ x <- group_by(care, id, cond, tday) %>%  # Grouping function causes subsequent f
             
 #calculate average of baseline condition per individual from table x
 avg <- group_by(x, id, cond) %>%
-  summarize(grunt.m = mean(grunt.m, na.rm = TRUE))
+  summarize(grunt.mm = mean(grunt.m, na.rm = TRUE),
+            grunt.m.sd=sd(grunt.m, na.rm = TRUE),  # na.rm = TRUE to remove missing values
+            n = sum(!is.na(grunt.m)), # of observations, excluding NAs. 
+            grunt.m.se=grunt.m.sd/sqrt(n))
 
 #subset avg table to remove all conditions except for 1
 baseline<-subset(avg, cond==1)
+
+#calculate standard error of condition 1 as a percentage rather than a raw number
+baseline$sepct=baseline$grunt.m.se/baseline$grunt.mm
+baseline#after seeing what the standard error is by pct, you'll need to manually enter this into
+        #the graphic commands below
 
 #subset table x to remove condition 1
 responses<-subset(x, cond!=1)
@@ -264,16 +272,16 @@ patats.resp<-subset(responses, id=="patats")
 #for each baboon, divide the daily average response by the average response in the "baseline" table and
 #call it grunt.brr (behavior response ratio)
 base.ayana<-subset(baseline, id=="ayana")
-ayana.resp$grunt.brr=ayana.resp$grunt.m/base.ayana$grunt.m
+ayana.resp$grunt.brr=ayana.resp$grunt.m/base.ayana$grunt.mm
 
 base.stevie<-subset(baseline, id=="stevie")
-stevie.resp$grunt.brr=stevie.resp$grunt.m/base.stevie$grunt.m
+stevie.resp$grunt.brr=stevie.resp$grunt.m/base.stevie$grunt.mm
 
 base.hope<-subset(baseline, id=="hope ")
-hope.resp$grunt.brr=hope.resp$grunt.m/base.hope$grunt.m
+hope.resp$grunt.brr=hope.resp$grunt.m/base.hope$grunt.mm
 
 base.patats<-subset(baseline, id=="patats")
-patats.resp$grunt.brr=patats.resp$grunt.m/base.patats$grunt.m
+patats.resp$grunt.brr=patats.resp$grunt.m/base.patats$grunt.mm
 
 #create a summary table for plotting (for each individual)
 #this example for "ayana"...change this variable for each
@@ -287,14 +295,16 @@ x.p <- group_by(ayana.resp, cond) %>%  # Grouping function causes subsequent fun
 library(ggplot2)
 ggplot(data=x.p, aes(x=cond, y=grunt.brr.m)) + 
   geom_bar(stat="identity", position=position_dodge(), color = "black") + 
-  geom_errorbar(aes(ymin=grunt.brr.m, ymax=grunt.brr.m + grunt.brr.se), width=0.2, 
+  geom_errorbar(aes(ymin=grunt.brr.m - grunt.brr.se, ymax=grunt.brr.m + grunt.brr.se), width=0.2, 
                 position=position_dodge(0.9)) + 
   scale_fill_manual(values=c("black")) +
   xlab("Condition") +
   ylab("Behavior Response Ratio") +
   ylim(0,2) +
   theme_bw() +
-  geom_hline(yintercept = 1) + 
+  geom_hline(yintercept = 1) +
+  geom_hline(yintercept = 1+0.273, linetype=2) + #this value is 1+ ayanaSE from baseline table above
+  geom_hline(yintercept = 1-0.273, linetype=2) + #this value is 1- ayanaSE from baseline table above
   theme(panel.grid.major=element_blank(),
         panel.grid.minor=element_blank(),
         axis.title.y=element_text(size=8),
@@ -303,5 +313,9 @@ ggplot(data=x.p, aes(x=cond, y=grunt.brr.m)) +
 #josefine....this is probably way clunkier than it needs to be, but this will show the average behavior
 #response per individual.  We can group it so all the individuals are shown on a given graph by doing
 #summaries for all the individuals and then binding them together with rbind
-#a value where the error bars are below 1 shows a significant decrease relative to condition 1, 
-#and a value where the error bars are greater than one shows a significant increase
+#a value where the error bars from conditions 2, 3, 4 do not enter the area of the dashed
+#error bars around 1.0 are significantly different than the baseline condition 1.
+#for ayana, condition 2 is not different than 1, but 3 and 4 are significantly lower
+#than condition 1.
+#If the average response were higher than one, then you would look at the bottom error bar of 
+#condition 2, 3, 4 to see if it fell into the area of the dashed error bars around 1.0

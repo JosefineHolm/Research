@@ -3,7 +3,7 @@
 care=read.table(file="caredata.csv", header=TRUE, sep=",")
 names(care)
 str(care)
-
+""
 #Installed Packages
 install.packages("lme4")
 install.packages("geepack")
@@ -46,17 +46,30 @@ care$negativect=rowSums(care[,c("iproxct", "iproxout","threatg", "bark", "headsh
 care$negativect
 ################################################################################################
 #Playing with models. 
-m2=lme(negativect~cond.f+dayofcond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep, random=~1|id,data=care, na.action=na.omit)
+m2=lmer(negativect~weather+enrich+timetofeed+xtraint+sep+(1|id), data=care, na.action=na.omit)
 summary(m2)
 m2=lme(negativect~tday.f+numct.f, random=~1|id,data=care, na.action=na.omit)
 #so far following independent factor does not wanna work:
 #tday.f,numct.f,sexct,ctclean,ctint,timetoenrich,timetoclean
 #Dropping factors- Not really sure were to go from here. 
-drop1(m2, test="Chi")
+drop1(m2, test="Chi")#or try "LRT" is better !!!! 
+# DO a lm on the independent factors that does not work. 
+
+
+summary(m2)
+
 m2=lme(negativect~cond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep, random=~1|id,data=care, na.action=na.omit)
 summary(m2)
 
 
+###################################################
+#try to use a step wise selection procedure
+#https://stat.ethz.ch/R-manual/R-devel/library/stats/html/step.html
+step(m2)
+summary(glm1 <- lm(cond.f ~ ., data = care))
+sglm1 <- step(glm1)
+summary(sglm1)
+sglm1$anova
 
 
 ###########################################################################################
@@ -67,12 +80,3 @@ plot(m2,scale="adjr2")
 plot(m2,scale="bic")
 
 ###########################################################################################
-#try to use a step wise selection procedure
-#https://stat.ethz.ch/R-manual/R-devel/library/stats/html/step.html
-
-step(m2)
-
-summary(glm1 <- lm(cond.f ~ ., data = care))
-sglm1 <- step(glm1)
-summary(sglm1)
-sglm1$anova

@@ -213,4 +213,4 @@ M2.2<-lmer(l.embraceb~cond.f+sep+(1|id),data=care, na.action=na.omit)
 #Checking the rest of the independent variables (NOT SURE WHAT TO DO HERE)
 M2.2<-lm(l.embraceb~tday.f,data=care, na.action=na.omit)
 summary(M2.2)
-#
+

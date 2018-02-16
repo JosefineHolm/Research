@@ -79,4 +79,22 @@ m2=regsubsets(negativect~cond.f+dayofcond.f+observer+focal.f+weather+ctpos+ctenr
 plot(m2,scale="adjr2")
 plot(m2,scale="bic")
 
+<<<<<<< HEAD
 ###########################################################################################
+=======
+###########################################################################################
+#try to use a step wise selection procedure
+#https://stat.ethz.ch/R-manual/R-devel/library/stats/html/step.html
+
+step(m2)
+
+summary(glm1 <- lm(cond.f ~ ., data = care))
+sglm1 <- step(glm1)
+summary(sglm1)
+sglm1$anova
+
+###########################################################################################
+#try to use lmer model for random effect
+library(lme4)
+m2=lmer(negativect~cond.f+dayofcond.f+observer+focal.f+weather+ctpos+ctenrich+enrich+timetofeed+clean+xtraint+pxtraint+sep+(~1|id),data=care, na.action=na.omit,nbest=4, really.big = T)
+>>>>>>> 054af9bd4b42c7383009705b95bf4cb2bf7b1d86

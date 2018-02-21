@@ -541,7 +541,7 @@ ggplot(data=x.p, aes(x=cond, y=eatd.brr.m)) +
   scale_fill_manual(values=c("black")) +
   xlab("Condition") +
   ylab("Behavior Response Ratio for eatd") +
-  ylim(0,2) +
+  ylim(0,5) +
   theme_bw() +
   geom_hline(yintercept = 1) +
   geom_hline(yintercept = 1+0.297, linetype=2) + #this value is 1+ ayanaSE from baseline table above
